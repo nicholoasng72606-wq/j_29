@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JUPAS Calculator </title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1300px; margin: 20px auto; padding: 0 20px; background: #f5f5f5; }
+        .input-panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .subjects { display: flex; flex-wrap: wrap; gap: 20px; margin: 20px 0; justify-content: space-between; }
+        .subject { display: flex; flex-direction: column; min-width: 80px; }
+        select { padding: 8px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow-x: auto; display: block; }
+        th, td { border: 1px solid #ddd; padding: 10px 8px; text-align: left; vertical-align: top; }
+        th { background-color: #e9ecef; }
+        .Ezzzzzzz { background-color: violet; }
+        .Easy { background-color: #cce5ff; }
+        .Yes { background-color: lightgreen; }
+        .Can-try { background-color: #ffe5b4; }
+        .Gambling { background-color: #f8d7da; }
+        .N-A { background-color: #e2e3e5; }
+        .info-note { margin-top: 15px; font-size: 12px; color: #666; text-align: center; }
+        .error-msg { color: #dc3545; font-weight: bold; margin: 20px; text-align: center; }
+        .loading { text-align: center; padding: 20px; color: #666; }
+    </style>
+</head>
+<body>
+<h2>🎓 JUPAS Calculator </h2>
+
+<div class="input-panel">
+    <div class="subjects">
+        <div class="subject">Chinese <select id="chi">
+            <option value="0">U</option><option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+            <option value="6">5*</option><option value="7" selected>5**</option>
+        </select></div>
+        <div class="subject">English <select id="eng">
+            <option value="0">U</option><option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+            <option value="6">5*</option><option value="7" selected>5**</option>
+        </select></div>
+        <div class="subject">Math <select id="math">
+            <option value="0">U</option><option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+            <option value="6">5*</option><option value="7" selected>5**</option>
+        </select></div>
+        <div class="subject">M2 <select id="m2">
+            <option value="0">U</option><option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+            <option value="6">5*</option><option value="7" selected>5**</option>
+        </select></div>
+        <div class="subject">Physics <select id="phy">
+            <option value="0">U</option><option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+            <option value="6">5*</option><option value="7" selected>5**</option>
+        </select></div>
+        <div class="subject">Chemistry <select id="chem">
+            <option value="0">U</option><option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+            <option value="6">5*</option><option value="7" selected>5**</option>
+        </select></div>
+        <div class="subject">Biology <select id="bio">
+            <option value="0">U</option><option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+            <option value="6">5*</option><option value="7" selected>5**</option>
+        </select></div>
+    </div>
+</div>
+
+<table id="resultTable">
+    <thead>
+        <tr><th>JUPAS Code</th><th>Programme Name</th><th>Your Score</th><th>UQ</th><th>Median</th><th>LQ</th><th>Chance</th></tr>
+    </thead>
+    <tbody id="resultBody">
+        <tr><td colspan="7" class="loading">Loading programme data from PolyU.json...</td></tr>
+    </tbody>
+</table>
+<div class="info-note"></div>
+
+<script>
+    // Convert dropdown value (0-7) to actual score
+    function inputToScore(val) {
+        const map = {0:0, 1:1, 2:2, 3:3, 4:4, 5:5.5, 6:7, 7:8.5};
+        return map[val];
+    }
+
+    // Chance logic exactly as your Excel IFS
+    function getChance(score, uq, median, lq) {
+        if (median === null || median === undefined || median === "N/A") return "N/A";
+        const uqVal = (uq !== null && uq !== "N/A") ? parseFloat(uq) : null;
+        const medianVal = parseFloat(median);
+        const lqVal = (lq !== null && lq !== "N/A") ? parseFloat(lq) : null;
+        
+        if ((uqVal !== null && score >= uqVal) || score >= 1.05 * medianVal) return "Ezzzzzzz";
+        if (score >= medianVal) return "Easy";
+        if (lqVal !== null && score >= lqVal * 0.99) return "Yes";
+        if (lqVal !== null && score >= lqVal * 0.95) return "Can try";
+        return "Gambling";
+    }
+
+    // Weighted sum calculation
+    function computeScore(programme, subjectScores) {
+    const weights = programme.weights;
+    if (!weights) return null;
+    
+    // 1. 計算所有科目的加權分數
+    let weightedScores = [];
+    for (const [subj, weight] of Object.entries(weights)) {
+        const score = subjectScores[subj];
+        if (score !== undefined) {
+            weightedScores.push(score * weight);
+        }
+    }
+    
+    // 2. 如果科目少於 5 科，全部加總
+    if (weightedScores.length <= 5) {
+        return weightedScores.reduce((sum, val) => sum + val, 0);
+    }
+    
+    // 3. 由大到小排序
+    weightedScores.sort((a, b) => b - a);
+    
+    // 4. 取最高的 5 個全額 + 第 6 個的 10%
+    const top5Sum = weightedScores.slice(0, 5).reduce((sum, val) => sum + val, 0);
+    const sixthScore = weightedScores[5] * 0.1;
+    
+    return top5Sum + sixthScore;
+    }
+
+    let programmesData = [];
+
+    function renderTable() {
+        // Get current subject scores
+        const chi = inputToScore(parseInt(document.getElementById("chi").value));
+        const eng = inputToScore(parseInt(document.getElementById("eng").value));
+        const math = inputToScore(parseInt(document.getElementById("math").value));
+        const m2 = inputToScore(parseInt(document.getElementById("m2").value));
+        const phy = inputToScore(parseInt(document.getElementById("phy").value));
+        const chem = inputToScore(parseInt(document.getElementById("chem").value));
+        const bio = inputToScore(parseInt(document.getElementById("bio").value));
+
+        const subjectScores = { chi, eng, math, m2, phy, chem, bio };
+        const tbody = document.getElementById("resultBody");
+        tbody.innerHTML = "";
+
+        if (!programmesData.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="error-msg">No data loaded. Ensure PolyU.json exists and is valid.</td></tr>';
+            return;
+        }
+
+        for (const prog of programmesData) {
+            const score = computeScore(prog, subjectScores);
+            if (score === null) continue;
+            const chance = getChance(score, prog.uq, prog.median, prog.lq);
+            let rowClass = "";
+            if (chance === "Ezzzzzzz") rowClass = "Ezzzzzzz";
+            else if (chance === "Easy") rowClass = "Easy";
+            else if (chance === "Yes") rowClass = "Yes";
+            else if (chance === "Can try") rowClass = "Can-try";
+            else if (chance === "Gambling") rowClass = "Gambling";
+            else rowClass = "N-A";
+            
+            const tr = document.createElement("tr");
+            tr.className = rowClass;
+            tr.innerHTML = `
+                <td>${prog.jupas_code || prog.code || ''}</td>
+                <td>${prog.programme_name || prog.name || ''}</td>
+                <td>${score.toFixed(2)}</td>
+                <td>${(prog.uq !== undefined && prog.uq !== null) ? prog.uq : 'N/A'}</td>
+                <td>${(prog.median !== undefined && prog.median !== null) ? prog.median : 'N/A'}</td>
+                <td>${(prog.lq !== undefined && prog.lq !== null) ? prog.lq : 'N/A'}</td>
+                <td>${chance}</td>
+            `;
+            tbody.appendChild(tr);
+        }
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7">No valid programmes with weights found.</td></tr>';
+        }
+    }
+
+    // Attach event listeners to all select elements for dynamic update
+    function bindEvents() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.addEventListener('change', () => renderTable());
+        });
+    }
+
+    // Fetch PolyU.json from same directory
+    fetch('./PolyU.json')
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            return response.json();
+        })
+        .then(data => {
+            let programmes = Array.isArray(data) ? data : (data.programmes || data.items || []);
+            if (!programmes.length && (data.jupas_code || data.code)) programmes = [data];
+            if (!programmes.length) throw new Error("No programme array found in JSON");
+            programmesData = programmes;
+            bindEvents();
+            renderTable();
+        })
+        .catch(error => {
+            console.error("Failed to load PolyU.json:", error);
+            const tbody = document.getElementById("resultBody");
+            tbody.innerHTML = `<tr><td colspan="7" class="error-msg">❌ Failed to load PolyU.json from the same folder. Make sure the file exists and is valid.<br>Details: ${error.message}</td></tr>`;
+        });
+</script>
+</body>
+</html>

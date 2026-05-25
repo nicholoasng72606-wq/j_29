@@ -1,0 +1,82 @@
+[
+  {
+    "jupas_code": "3290",
+    "programme_name": "Optometry",
+    "uq": null,
+    "median": 277.8,
+    "lq": 247.8,
+    "weights": {
+      "chi": 7,
+      "eng": 10,
+      "math": 10,
+      "phy": 10,
+      "chem": 10,
+      "bio": 10,
+      "m2": 10
+    }
+  },
+  {
+    "jupas_code": "3478",
+    "programme_name": "Medical Laboratory Science",
+    "uq": null,
+    "median": 309,
+    "lq": 306.5,
+    "weights": {
+      "chi": 10,
+      "eng": 10,
+      "math": 10,
+      "phy": 7,
+      "chem": 10,
+      "bio": 10,
+      "m2": 10
+    }
+  },
+  {
+    "jupas_code": "3612",
+    "programme_name": "Radiography",
+    "uq": null,
+    "median": 339,
+    "lq": 328.5,
+    "weights": {
+      "chi": 10,
+      "eng": 10,
+      "math": 10,
+      "phy": 10,
+      "chem": 10,
+      "bio": 10,
+      "m2": 7
+    }
+  },
+  {
+    "jupas_code": "3624",
+    "programme_name": "Occupational Therapy",
+    "uq": null,
+    "median": 279.5,
+    "lq": 278,
+    "weights": {
+      "chi": 10,
+      "eng": 10,
+      "math": 7,
+      "phy": 10,
+      "chem": 10,
+      "bio": 10,
+      "m2": 7
+    }
+  },
+  {
+    "jupas_code": "3636",
+    "programme_name": "Physiotherapy",
+    "uq": null,
+    "median": 320,
+    "lq": 320,
+    "weights": {
+      "chi": 10,
+      "eng": 10,
+      "math": 10,
+      "phy": 10,
+      "chem": 10,
+      "bio": 10,
+      "m2": 10
+    }
+  }
+]
