@@ -1,0 +1,47 @@
+[
+  {
+    "jupas_code": "5282",
+    "programme_name": "Engineering with Extended Major in AI",
+    "school": "HKUST",
+    "formula": "hkust_eng_ai",
+    "max_score": 72.25,
+    "median": 48.7,
+    "lq": 46.48
+  },
+  {
+    "jupas_code": "5313",
+    "programme_name": "BBA in Global Business",
+    "school": "HKUST",
+    "formula": "hkust_bba",
+    "max_score": 59.5,
+    "median": 52.43,
+    "lq": 50.4
+  },
+  {
+    "jupas_code": "5332",
+    "programme_name": "BSc in Quantitative Finance",
+    "school": "HKUST",
+    "formula": "hkust_qfin",
+    "max_score": 63.75,
+    "median": 58.13,
+    "lq": 56.06
+  },
+  {
+    "jupas_code": "5420",
+    "programme_name": "Department of Computer Science & Engineering",
+    "school": "HKUST",
+    "formula": "hkust_cse",
+    "max_score": 76.5,
+    "median": 48.45,
+    "lq": 46.45
+  },
+  {
+    "jupas_code": "5901",
+    "programme_name": "BEng / BSc & BBA Dual Degree Program in Technology and Management",
+    "school": "HKUST",
+    "formula": "hkust_dual",
+    "max_score": 72.25,
+    "median": 62.48,
+    "lq": 60.23
+  }
+]
