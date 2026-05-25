@@ -11,13 +11,19 @@
         select { padding: 8px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; cursor: pointer; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow-x: auto; display: block; }
         th, td { border: 1px solid #ddd; padding: 10px 8px; text-align: left; vertical-align: top; }
-        th { background-color: #e9ecef; }
-        .Ezzzzzzz { background-color: violet; }
+        th { background-color: #d8d6d6; }
+        
+        /* 一般欄位灰色 */
+        td.data-cell { background-color: #e7e7e7; }
+        
+        /* Chance 欄位底色 */
+        .Ezzzzzzz { background-color: #d8b4fe; }
         .Easy { background-color: #cce5ff; }
-        .Yes { background-color: lightgreen; }
+        .Yes { background-color: #86efac; }
         .Can-try { background-color: #ffe5b4; }
         .Gambling { background-color: #f8d7da; }
         .N-A { background-color: #e2e3e5; }
+        
         .info-note { margin-top: 15px; font-size: 12px; color: #666; text-align: center; }
         .error-msg { color: #dc3545; font-weight: bold; margin: 20px; text-align: center; }
         .loading { text-align: center; padding: 20px; color: #666; }
@@ -68,7 +74,15 @@
 
 <table id="resultTable">
     <thead>
-        <tr><th>JUPAS Code</th><th>Programme Name</th><th>Your Score</th><th>UQ</th><th>Median</th><th>LQ</th><th>Chance</th></tr>
+        <tr>
+            <th>JUPAS Code</th>
+            <th>Programme Name</th>
+            <th>Your Score</th>
+            <th>UQ</th>
+            <th>Median</th>
+            <th>LQ</th>
+            <th>Chance</th>
+        </tr>
     </thead>
     <tbody id="resultBody">
         <tr><td colspan="7" class="loading">Loading programme data from PolyU.json...</td></tr>
@@ -97,39 +111,34 @@
         return "Gambling";
     }
 
-    // Weighted sum calculation
+    // Weighted sum calculation (Best 5 + 0.1×6th)
     function computeScore(programme, subjectScores) {
-    const weights = programme.weights;
-    if (!weights) return null;
-    
-    // 1. 計算所有科目的加權分數
-    let weightedScores = [];
-    for (const [subj, weight] of Object.entries(weights)) {
-        const score = subjectScores[subj];
-        if (score !== undefined) {
-            weightedScores.push(score * weight);
+        const weights = programme.weights;
+        if (!weights) return null;
+        
+        let weightedScores = [];
+        for (const [subj, weight] of Object.entries(weights)) {
+            const score = subjectScores[subj];
+            if (score !== undefined) {
+                weightedScores.push(score * weight);
+            }
         }
-    }
-    
-    // 2. 如果科目少於 5 科，全部加總
-    if (weightedScores.length <= 5) {
-        return weightedScores.reduce((sum, val) => sum + val, 0);
-    }
-    
-    // 3. 由大到小排序
-    weightedScores.sort((a, b) => b - a);
-    
-    // 4. 取最高的 5 個全額 + 第 6 個的 10%
-    const top5Sum = weightedScores.slice(0, 5).reduce((sum, val) => sum + val, 0);
-    const sixthScore = weightedScores[5] * 0.1;
-    
-    return top5Sum + sixthScore;
+        
+        if (weightedScores.length <= 5) {
+            return weightedScores.reduce((sum, val) => sum + val, 0);
+        }
+        
+        weightedScores.sort((a, b) => b - a);
+        
+        const top5Sum = weightedScores.slice(0, 5).reduce((sum, val) => sum + val, 0);
+        const sixthScore = weightedScores[5] * 0.1;
+        
+        return top5Sum + sixthScore;
     }
 
     let programmesData = [];
 
     function renderTable() {
-        // Get current subject scores
         const chi = inputToScore(parseInt(document.getElementById("chi").value));
         const eng = inputToScore(parseInt(document.getElementById("eng").value));
         const math = inputToScore(parseInt(document.getElementById("math").value));
@@ -151,24 +160,23 @@
             const score = computeScore(prog, subjectScores);
             if (score === null) continue;
             const chance = getChance(score, prog.uq, prog.median, prog.lq);
-            let rowClass = "";
-            if (chance === "Ezzzzzzz") rowClass = "Ezzzzzzz";
-            else if (chance === "Easy") rowClass = "Easy";
-            else if (chance === "Yes") rowClass = "Yes";
-            else if (chance === "Can try") rowClass = "Can-try";
-            else if (chance === "Gambling") rowClass = "Gambling";
-            else rowClass = "N-A";
+            let chanceClass = "";
+            if (chance === "Ezzzzzzz") chanceClass = "Ezzzzzzz";
+            else if (chance === "Easy") chanceClass = "Easy";
+            else if (chance === "Yes") chanceClass = "Yes";
+            else if (chance === "Can try") chanceClass = "Can-try";
+            else if (chance === "Gambling") chanceClass = "Gambling";
+            else chanceClass = "N-A";
             
             const tr = document.createElement("tr");
-            tr.className = rowClass;
             tr.innerHTML = `
-                <td>${prog.jupas_code || prog.code || ''}</td>
-                <td>${prog.programme_name || prog.name || ''}</td>
-                <td>${score.toFixed(2)}</td>
-                <td>${(prog.uq !== undefined && prog.uq !== null) ? prog.uq : 'N/A'}</td>
-                <td>${(prog.median !== undefined && prog.median !== null) ? prog.median : 'N/A'}</td>
-                <td>${(prog.lq !== undefined && prog.lq !== null) ? prog.lq : 'N/A'}</td>
-                <td>${chance}</td>
+                <td class="data-cell">${prog.jupas_code || prog.code || ''}</td>
+                <td class="data-cell">${prog.programme_name || prog.name || ''}</td>
+                <td class="data-cell">${score.toFixed(2)}</td>
+                <td class="data-cell">${(prog.uq !== undefined && prog.uq !== null) ? prog.uq : 'N/A'}</td>
+                <td class="data-cell">${(prog.median !== undefined && prog.median !== null) ? prog.median : 'N/A'}</td>
+                <td class="data-cell">${(prog.lq !== undefined && prog.lq !== null) ? prog.lq : 'N/A'}</td>
+                <td class="${chanceClass}">${chance}</td>
             `;
             tbody.appendChild(tr);
         }
@@ -177,7 +185,6 @@
         }
     }
 
-    // Attach event listeners to all select elements for dynamic update
     function bindEvents() {
         const selects = document.querySelectorAll('select');
         selects.forEach(select => {
@@ -185,7 +192,6 @@
         });
     }
 
-    // Fetch PolyU.json from same directory
     fetch('./PolyU.json')
         .then(response => {
             if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
