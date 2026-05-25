@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JUPAS Calculator </title>
+    <title>JUPAS Calculator (HKUST + PolyU)</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 1300px; margin: 20px auto; padding: 0 20px; background: #f5f5f5; }
         .input-panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
@@ -12,25 +12,21 @@
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow-x: auto; display: block; }
         th, td { border: 1px solid #ddd; padding: 10px 8px; text-align: left; vertical-align: top; }
         th { background-color: #d8d6d6; }
-        
-        /* 一般欄位灰色 */
-        td.data-cell { background-color: #e7e7e7; }
-        
-        /* Chance 欄位底色 */
+        .data-cell { background-color: #e7e7e7; }
         .Ezzzzzzz { background-color: #d8b4fe; }
         .Easy { background-color: #cce5ff; }
         .Yes { background-color: #86efac; }
         .Can-try { background-color: #ffe5b4; }
         .Gambling { background-color: #f8d7da; }
         .N-A { background-color: #e2e3e5; }
-        
+        .school-separator { background-color: #f0f0f0; font-weight: bold; text-align: left; font-size: 16px; color: #dc3545;}
         .info-note { margin-top: 15px; font-size: 12px; color: #666; text-align: center; }
         .error-msg { color: #dc3545; font-weight: bold; margin: 20px; text-align: center; }
         .loading { text-align: center; padding: 20px; color: #666; }
     </style>
 </head>
 <body>
-<h2>🎓 JUPAS Calculator </h2>
+<h2>🎓 JUPAS Calculator (HKUST + PolyU)</h2>
 
 <div class="input-panel">
     <div class="subjects">
@@ -85,25 +81,24 @@
         </tr>
     </thead>
     <tbody id="resultBody">
-        <tr><td colspan="7" class="loading">Loading programme data from PolyU.json...</td></tr>
+        <tr><td colspan="7" class="loading">Loading programme data...</td></tr>
     </tbody>
 </table>
 <div class="info-note"></div>
 
 <script>
-    // Convert dropdown value (0-7) to actual score
+    // ========== 分數轉換 ==========
     function inputToScore(val) {
         const map = {0:0, 1:1, 2:2, 3:3, 4:4, 5:5.5, 6:7, 7:8.5};
         return map[val];
     }
 
-    // Chance logic exactly as your Excel IFS
+    // ========== Chance 邏輯 (同 PolyU) ==========
     function getChance(score, uq, median, lq) {
         if (median === null || median === undefined || median === "N/A") return "N/A";
         const uqVal = (uq !== null && uq !== "N/A") ? parseFloat(uq) : null;
         const medianVal = parseFloat(median);
         const lqVal = (lq !== null && lq !== "N/A") ? parseFloat(lq) : null;
-        
         if ((uqVal !== null && score >= uqVal) || score >= 1.05 * medianVal) return "Ezzzzzzz";
         if (score >= medianVal) return "Easy";
         if (lqVal !== null && score >= lqVal * 0.99) return "Yes";
@@ -111,32 +106,147 @@
         return "Gambling";
     }
 
-    // Weighted sum calculation (Best 5 + 0.1×6th)
-    function computeScore(programme, subjectScores) {
+    // ========== PolyU 計分 (Best 5 weighted + 0.1×6th) ==========
+    function computePolyUScore(programme, subjectScores) {
         const weights = programme.weights;
         if (!weights) return null;
-        
         let weightedScores = [];
         for (const [subj, weight] of Object.entries(weights)) {
             const score = subjectScores[subj];
-            if (score !== undefined) {
-                weightedScores.push(score * weight);
-            }
+            if (score !== undefined) weightedScores.push(score * weight);
         }
-        
-        if (weightedScores.length <= 5) {
-            return weightedScores.reduce((sum, val) => sum + val, 0);
-        }
-        
-        weightedScores.sort((a, b) => b - a);
-        
-        const top5Sum = weightedScores.slice(0, 5).reduce((sum, val) => sum + val, 0);
-        const sixthScore = weightedScores[5] * 0.1;
-        
-        return top5Sum + sixthScore;
+        if (weightedScores.length <= 5) return weightedScores.reduce((a,b)=>a+b, 0);
+        weightedScores.sort((a,b)=>b-a);
+        const top5 = weightedScores.slice(0,5).reduce((a,b)=>a+b, 0);
+        const sixth = weightedScores[5] * 0.1;
+        return top5 + sixth;
     }
 
-    let programmesData = [];
+    // ========== HKUST 6th Subject Bonus ==========
+    function getBonusPercent(gradeScore) {
+        if (gradeScore >= 8.5) return 0.05;
+        if (gradeScore >= 7) return 0.0412;
+        if (gradeScore >= 5.5) return 0.0324;
+        if (gradeScore >= 4) return 0.0235;
+        if (gradeScore >= 3) return 0.0176;
+        return 0;
+    }
+
+    // 輔助：從剩餘科目中選最高原始分的一科作為第6科
+    function getSixthSubjectScore(usedSubjects, subjectScores) {
+        const allSubjects = ['chi','eng','math','m2','phy','chem','bio'];
+        let maxGrade = -1;
+        for (const s of allSubjects) {
+            if (!usedSubjects.includes(s)) {
+                const grade = subjectScores[s];
+                if (grade > maxGrade) maxGrade = grade;
+            }
+        }
+        return maxGrade;
+    }
+
+    // ========== HKUST 各公式計算 (返回 {best5Sum, usedSubjects}) ==========
+    function computeHKUST(programme, scores) {
+        const formula = programme.formula;
+        const eng = scores.eng * 2;
+        const math = scores.math * 2;
+        const base = eng + math;
+        const others = ['chi','m2','phy','chem','bio'];
+
+        // 通用暴力搜索工具：從候選列表中選 n 個科目，使用權重函數，返回所有組合的最高總分及科目
+        function bestPick(candidates, n, weightFn) {
+            let bestSum = -1;
+            let bestCombo = [];
+            const arr = [...candidates];
+            function combine(start, chosen) {
+                if (chosen.length === n) {
+                    let sum = 0;
+                    for (const s of chosen) sum += scores[s] * weightFn(s);
+                    if (sum > bestSum) {
+                        bestSum = sum;
+                        bestCombo = [...chosen];
+                    }
+                    return;
+                }
+                for (let i = start; i < arr.length; i++) {
+                    combine(i+1, [...chosen, arr[i]]);
+                }
+            }
+            combine(0, []);
+            return {sum: bestSum, subjects: bestCombo};
+        }
+
+        if (formula === 'hkust_eng_ai' || formula === 'hkust_dual') {
+            // Part B: 從 {phy,chem,bio} 選1科，權重 ×2
+            // Part C: 從剩餘4科中選2科，M2×1.5, 其他×1
+            const partBPool = ['phy','chem','bio'];
+            let bestTotal = -1, bestUsed = [];
+            for (const partB of partBPool) {
+                const partBScore = scores[partB] * 2;
+                const remaining = others.filter(s => s !== partB);
+                const partCResult = bestPick(remaining, 2, s => s === 'm2' ? 1.5 : 1);
+                const total = base + partBScore + partCResult.sum;
+                if (total > bestTotal) {
+                    bestTotal = total;
+                    bestUsed = ['eng','math', partB, ...partCResult.subjects];
+                }
+            }
+            return {best5Sum: bestTotal, usedSubjects: bestUsed};
+        }
+        else if (formula === 'hkust_bba') {
+            // Best 3 other subjects, weight 1
+            const result = bestPick(others, 3, () => 1);
+            return {
+                best5Sum: base + result.sum,
+                usedSubjects: ['eng','math', ...result.subjects]
+            };
+        }
+        else if (formula === 'hkust_qfin') {
+            // Option A: Best 3 others ×1
+            const optA = bestPick(others, 3, () => 1);
+            const totalA = base + optA.sum;
+            // Option B: Best of {chem,phy,m2} ×1.5 + Best 2 of remaining ×1
+            const specialPool = ['chem','phy','m2'];
+            let bestB = -1, bestBUsed = [];
+            for (const sp of specialPool) {
+                const spScore = scores[sp] * 1.5;
+                const rem = others.filter(s => s !== sp);
+                const rest = bestPick(rem, 2, () => 1);
+                const total = base + spScore + rest.sum;
+                if (total > bestB) {
+                    bestB = total;
+                    bestBUsed = ['eng','math', sp, ...rest.subjects];
+                }
+            }
+            if (totalA >= bestB) {
+                return {best5Sum: totalA, usedSubjects: ['eng','math', ...optA.subjects]};
+            } else {
+                return {best5Sum: bestB, usedSubjects: bestBUsed};
+            }
+        }
+        else if (formula === 'hkust_cse') {
+            // Part B: best 1 of {phy,chem,bio} weights: phy×2, chem×1, bio×1
+            // Part C: best 2 of remaining, M2×2, others×1
+            const partBPool = ['phy','chem','bio'];
+            const weightB = s => s === 'phy' ? 2 : 1;
+            let bestTotal = -1, bestUsed = [];
+            for (const partB of partBPool) {
+                const partBScore = scores[partB] * weightB(partB);
+                const remaining = others.filter(s => s !== partB);
+                const partCResult = bestPick(remaining, 2, s => s === 'm2' ? 2 : 1);
+                const total = base + partBScore + partCResult.sum;
+                if (total > bestTotal) {
+                    bestTotal = total;
+                    bestUsed = ['eng','math', partB, ...partCResult.subjects];
+                }
+            }
+            return {best5Sum: bestTotal, usedSubjects: bestUsed};
+        }
+        return null;
+    }
+
+    // ========== 主渲染 ==========
+    let programmesData = { hkust: [], polyu: [] };
 
     function renderTable() {
         const chi = inputToScore(parseInt(document.getElementById("chi").value));
@@ -146,70 +256,92 @@
         const phy = inputToScore(parseInt(document.getElementById("phy").value));
         const chem = inputToScore(parseInt(document.getElementById("chem").value));
         const bio = inputToScore(parseInt(document.getElementById("bio").value));
-
         const subjectScores = { chi, eng, math, m2, phy, chem, bio };
+
         const tbody = document.getElementById("resultBody");
         tbody.innerHTML = "";
 
-        if (!programmesData.length) {
-            tbody.innerHTML = '<tr><td colspan="7" class="error-msg">No data loaded. Ensure PolyU.json exists and is valid.</td></tr>';
+        if (!programmesData.hkust.length && !programmesData.polyu.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="error-msg">No data loaded.</td></tr>';
             return;
         }
 
-        for (const prog of programmesData) {
-            const score = computeScore(prog, subjectScores);
-            if (score === null) continue;
-            const chance = getChance(score, prog.uq, prog.median, prog.lq);
-            let chanceClass = "";
-            if (chance === "Ezzzzzzz") chanceClass = "Ezzzzzzz";
-            else if (chance === "Easy") chanceClass = "Easy";
-            else if (chance === "Yes") chanceClass = "Yes";
-            else if (chance === "Can try") chanceClass = "Can-try";
-            else if (chance === "Gambling") chanceClass = "Gambling";
-            else chanceClass = "N-A";
-            
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td class="data-cell">${prog.jupas_code || prog.code || ''}</td>
-                <td class="data-cell">${prog.programme_name || prog.name || ''}</td>
-                <td class="data-cell">${score.toFixed(2)}</td>
-                <td class="data-cell">${(prog.uq !== undefined && prog.uq !== null) ? prog.uq : 'N/A'}</td>
-                <td class="data-cell">${(prog.median !== undefined && prog.median !== null) ? prog.median : 'N/A'}</td>
-                <td class="data-cell">${(prog.lq !== undefined && prog.lq !== null) ? prog.lq : 'N/A'}</td>
-                <td class="${chanceClass}">${chance}</td>
-            `;
-            tbody.appendChild(tr);
+        // 輔助：渲染一組 programmes
+        function renderGroup(programmes, schoolName) {
+            if (!programmes.length) return;
+            // 學校名分隔行
+            const sepRow = document.createElement('tr');
+            sepRow.innerHTML = `<td colspan="7" class="school-separator">${schoolName}</td>`;
+            tbody.appendChild(sepRow);
+
+            for (const prog of programmes) {
+                let finalScore = null;
+                if (prog.formula) {
+                    // HKUST
+                    const result = computeHKUST(prog, subjectScores);
+                    if (!result) continue;
+                    const sixthGrade = getSixthSubjectScore(result.usedSubjects, subjectScores);
+                    const bonusPercent = getBonusPercent(sixthGrade);
+                    const bonus = prog.max_score * bonusPercent;
+                    finalScore = result.best5Sum + bonus;
+                } else if (prog.weights) {
+                    // PolyU
+                    finalScore = computePolyUScore(prog, subjectScores);
+                }
+                if (finalScore === null) continue;
+
+                const chance = getChance(finalScore, prog.uq, prog.median, prog.lq);
+                let chanceClass = "N-A";
+                if (chance === "Ezzzzzzz") chanceClass = "Ezzzzzzz";
+                else if (chance === "Easy") chanceClass = "Easy";
+                else if (chance === "Yes") chanceClass = "Yes";
+                else if (chance === "Can try") chanceClass = "Can-try";
+                else if (chance === "Gambling") chanceClass = "Gambling";
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td class="data-cell">${prog.jupas_code || ''}</td>
+                    <td class="data-cell">${prog.programme_name || ''}</td>
+                    <td class="data-cell">${finalScore.toFixed(2)}</td>
+                    <td class="data-cell">${(prog.uq !== undefined && prog.uq !== null) ? prog.uq : 'N/A'}</td>
+                    <td class="data-cell">${(prog.median !== undefined && prog.median !== null) ? prog.median : 'N/A'}</td>
+                    <td class="data-cell">${(prog.lq !== undefined && prog.lq !== null) ? prog.lq : 'N/A'}</td>
+                    <td class="${chanceClass}">${chance}</td>
+                `;
+                tbody.appendChild(tr);
+            }
         }
+
+        // 先 HKUST，後 PolyU
+        renderGroup(programmesData.hkust, "HKUST");
+        renderGroup(programmesData.polyu, "PolyU");
+
         if (tbody.children.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7">No valid programmes with weights found.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7">No valid programmes to display.</td></tr>';
         }
     }
 
     function bindEvents() {
-        const selects = document.querySelectorAll('select');
-        selects.forEach(select => {
-            select.addEventListener('change', () => renderTable());
+        document.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', renderTable);
         });
     }
 
-    fetch('./PolyU.json')
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            return response.json();
-        })
-        .then(data => {
-            let programmes = Array.isArray(data) ? data : (data.programmes || data.items || []);
-            if (!programmes.length && (data.jupas_code || data.code)) programmes = [data];
-            if (!programmes.length) throw new Error("No programme array found in JSON");
-            programmesData = programmes;
-            bindEvents();
-            renderTable();
-        })
-        .catch(error => {
-            console.error("Failed to load PolyU.json:", error);
-            const tbody = document.getElementById("resultBody");
-            tbody.innerHTML = `<tr><td colspan="7" class="error-msg">❌ Failed to load PolyU.json from the same folder. Make sure the file exists and is valid.<br>Details: ${error.message}</td></tr>`;
-        });
+    // 載入兩個 JSON
+    Promise.all([
+        fetch('./HKUST.json').then(r => { if(!r.ok) throw new Error('HKUST.json load error'); return r.json(); }),
+        fetch('./PolyU.json').then(r => { if(!r.ok) throw new Error('PolyU.json load error'); return r.json(); })
+    ])
+    .then(([hkustData, polyuData]) => {
+        programmesData.hkust = Array.isArray(hkustData) ? hkustData : [];
+        programmesData.polyu = Array.isArray(polyuData) ? polyuData : [];
+        bindEvents();
+        renderTable();
+    })
+    .catch(error => {
+        console.error(error);
+        document.getElementById("resultBody").innerHTML = `<tr><td colspan="7" class="error-msg">❌ Failed to load data. Ensure HKUST.json and PolyU.json exist.<br>${error.message}</td></tr>`;
+    });
 </script>
 </body>
 </html>
