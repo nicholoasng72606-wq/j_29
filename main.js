@@ -8,11 +8,14 @@ let allData = {};
 
 // 讀取 JSON 數據
 async function loadData() {
+    // 自動偵測 GitHub Pages 或 LocalHost 嘅路徑
+    const basePath = window.location.pathname.includes('/j_29/') ? '/j_29' : '';
+    
     const [cuhk, hku, hkust, polyu] = await Promise.all([
-        fetch('./CUHK/CUHK.json').then(r => r.json()),
-        fetch('./HKU/HKU.json').then(r => r.json()),
-        fetch('./HKUST/HKUST.json').then(r => r.json()),
-        fetch('./PolyU/PolyU.json').then(r => r.json())
+        fetch(basePath + '/CUHK/CUHK.json').then(r => r.json()),
+        fetch(basePath + '/HKU/HKU.json').then(r => r.json()),
+        fetch(basePath + '/HKUST/HKUST.json').then(r => r.json()),
+        fetch(basePath + '/PolyU/PolyU.json').then(r => r.json())
     ]);
     allData = { cuhk, hku, hkust, polyu };
 }
