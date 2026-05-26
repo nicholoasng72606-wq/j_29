@@ -19,7 +19,7 @@ th { background-color: #d8d6d6; }
 .loading { text-align: center; padding: 20px; color: #666; }
 a:hover{color:red; font-size: 30px;}
 a{font-size: 25px;}
-#ads{font-size: 25px; display: inline;}
+#ads{font-size: 25px; display: inline; }
 
 @media (max-width: 600px) {
     .subjects { flex-direction: column; gap: 10px; }
