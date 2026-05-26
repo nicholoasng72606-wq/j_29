@@ -1,18 +1,18 @@
 import { inputToScore, inputToMedScore, getChance } from './common.js';
-import { computeAllCUHK } from './CUHK/cuhk.js';
-import { computeAllHKU } from './HKU/hku.js';
-import { computeAllHKUST } from './HKUST/hkust.js';
-import { computeAllPolyU } from './PolyU/polyu.js';
+import { computeAllCUHK } from './CUHK/CUHK.js';
+import { computeAllHKU } from './HKU/HKU.js';
+import { computeAllHKUST } from './HKUST/HKUST.js';
+import { computeAllPolyU } from './PolyU/PolyU.js';
 
 let allData = {};
 
 // 讀取 JSON 數據
 async function loadData() {
     const [cuhk, hku, hkust, polyu] = await Promise.all([
-        fetch('./CUHK/cuhk.json').then(r => r.json()),
-        fetch('./HKU/hku.json').then(r => r.json()),
-        fetch('./HKUST/hkust.json').then(r => r.json()),
-        fetch('./PolyU/polyu.json').then(r => r.json())
+        fetch('./CUHK/CUHK.json').then(r => r.json()),
+        fetch('./HKU/HKU.json').then(r => r.json()),
+        fetch('./HKUST/HKUST.json').then(r => r.json()),
+        fetch('./PolyU/PolyU.json').then(r => r.json())
     ]);
     allData = { cuhk, hku, hkust, polyu };
 }
