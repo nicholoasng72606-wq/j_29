@@ -1,0 +1,101 @@
+[
+  {
+    "jupas_code": "6016",
+    "programme_name": "Bachelor of Science in Surveying",
+    "school": "HKU",
+    "formula": "hku_best5",
+    "uq": 31,
+    "median": 29,
+    "lq": 28
+  },
+  {
+    "jupas_code": "6200",
+    "programme_name": "Computing and Data Science (Delta+)",
+    "school": "HKU",
+    "formula": "hku_eng_math_best3",
+    "uq": null,
+    "median": null,
+    "lq": null
+  },
+  {
+    "jupas_code": "6224",
+    "programme_name": "Bachelor of Arts and Sciences in Applied Artificial Intelligence",
+    "school": "HKU",
+    "formula": "hku_6224",
+    "uq": 57,
+    "median": 53,
+    "lq": 51
+  },
+  {
+    "jupas_code": "6248",
+    "programme_name": "Bachelor of Arts and Sciences in Financial Technology",
+    "school": "HKU",
+    "formula": "hku_eng_math_best3",
+    "uq": 35,
+    "median": 34,
+    "lq": 32
+  },
+  {
+    "jupas_code": "6303",
+    "programme_name": "Bachelor of Engineering Elite Programme",
+    "school": "HKU",
+    "formula": "hku_eng_math_best3",
+    "uq": 38,
+    "median": 36,
+    "lq": 35
+  },
+  {
+    "jupas_code": "6377",
+    "programme_name": "BEng and MSc in Engineering in Artificial Intelligence in Engineering",
+    "school": "HKU",
+    "formula": "hku_eng_math_best3",
+    "uq": 34,
+    "median": 33,
+    "lq": 31
+  },
+  {
+    "jupas_code": "6456",
+    "programme_name": "Bachelor of Medicine and Bachelor of Surgery",
+    "school": "HKU",
+    "formula": "hku_best6",
+    "uq": 47,
+    "median": 44,
+    "lq": 42
+  },
+  {
+    "jupas_code": "6626",
+    "programme_name": "Bachelor of Medicine and Bachelor of Surgery (Distinguished MedScholar)",
+    "school": "HKU",
+    "formula": "hku_best6",
+    "uq": null,
+    "median": null,
+    "lq": null
+  },
+  {
+    "jupas_code": "6688",
+    "programme_name": "Science Master Class",
+    "school": "HKU",
+    "formula": "hku_6688",
+    "uq": 36,
+    "median": 34,
+    "lq": 32
+  },
+  {
+    "jupas_code": "6729",
+    "programme_name": "Bachelor of Science in Actuarial Science",
+    "school": "HKU",
+    "formula": "hku_6729",
+    "uq": 36,
+    "median": 35,
+    "lq": 35
+  },
+  {
+    "jupas_code": "6884",
+    "programme_name": "Bachelor of Science in Quantitative Finance",
+    "school": "HKU",
+    "formula": "hku_6884",
+    "uq": 55,
+    "median": 51,
+    "lq": 50
+  }
+]

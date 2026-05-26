@@ -1,0 +1,70 @@
+[
+  {
+    "jupas_code": "4238",
+    "programme_name": "Insurance, Financial and Actuarial Analysis",
+    "school": "CUHK",
+    "uq": 42.5,
+    "median": 41.75,
+    "lq": 40.25,
+    "weights": { "chi": 1, "eng": 1.25, "math": 1.5, "m2": 1.5, "phy": 1, "chem": 1, "bio": 1 },
+    "special_weight": { "subjects": ["phy", "chem"], "weight": 1.25 }
+  },
+  {
+    "jupas_code": "4252",
+    "programme_name": "Quantitative Finance",
+    "school": "CUHK",
+    "uq": 54.75,
+    "median": 52.5,
+    "lq": 51.75,
+    "weights": { "chi": 1, "eng": 2, "math": 2, "m2": 1, "phy": 1, "chem": 1, "bio": 1 },
+    "special_weight": { "subjects": ["m2", "phy", "chem"], "weight": 1.5 }
+  },
+  {
+    "jupas_code": "4276",
+    "programme_name": "Quantitative Finance and Risk Management Science",
+    "school": "CUHK",
+    "uq": 63.75,
+    "median": 57.75,
+    "lq": 54.75,
+    "weights": { "chi": 1, "eng": 2, "math": 2, "m2": 1, "phy": 1, "chem": 1, "bio": 1 },
+    "special_weight": { "subjects": ["m2", "phy", "chem"], "weight": 1.5 }
+  },
+  {
+    "jupas_code": "4416",
+    "programme_name": "Computational Data Science",
+    "school": "CUHK",
+    "uq": 59,
+    "median": 54.5,
+    "lq": 53,
+    "weights": { "chi": 1, "eng": 1, "math": 2, "m2": 2, "phy": 1.5, "chem": 1.5, "bio": 1.5 },
+    "special_weight": { "subjects": ["phy", "chem", "bio"], "weight": 1.5 }
+  },
+  {
+    "jupas_code": "4468",
+    "programme_name": "Artificial Intelligence: Systems and Technologies",
+    "school": "CUHK",
+    "uq": 55.75,
+    "median": 52.375,
+    "lq": 50.375,
+    "weights": { "chi": 1.25, "eng": 1.25, "math": 1.75, "m2": 1.75, "phy": 1.5, "chem": 1.5, "bio": 1.5 },
+    "special_weight": { "subjects": ["phy", "chem", "bio"], "weight": 1.5 }
+  },
+  {
+    "jupas_code": "4501",
+    "programme_name": "Medicine (MBChB) Programme",
+    "school": "CUHK",
+    "formula": "cuhk_medicine",
+    "uq": 38,
+    "median": 37,
+    "lq": 36
+  },
+  {
+    "jupas_code": "4502",
+    "programme_name": "Medicine (MBChB) Programme Global Physician-Leadership Stream (GPS)",
+    "school": "CUHK",
+    "formula": "cuhk_medicine",
+    "uq": 41.5,
+    "median": 40.5,
+    "lq": 40
+  }
+]
