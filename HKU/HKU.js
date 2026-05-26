@@ -16,6 +16,10 @@ function compute(prog, scores) {
         const arr = all.map(s => scores[s]).sort((a,b)=>b-a);
         return arr.slice(0,6).reduce((a,b)=>a+b,0);
     }
+    if (f === 'hku_dental') {
+        const arr = all.map(s => scores[s]).sort((a,b)=>b-a);
+        return arr.slice(0,6).reduce((a,b)=>a+b,0) + 0.3 * (Math.max(scores.chem, scores.bio));
+    }
     if (f === 'hku_6224') {
         const base = 2*scores.eng + 2*scores.math + 2*scores.m2;
         const pool = [scores.phy, scores.chem, scores.bio].sort((a,b)=>b-a);
@@ -24,7 +28,7 @@ function compute(prog, scores) {
     if (f === 'hku_6688') {
         const fixed = scores.eng + scores.math;
         const pool = [scores.phy, scores.chem, scores.bio, scores.m2].sort((a,b)=>b-a);
-        return fixed + 1.2 * (pool[0] + pool[1] + pool[2]);
+        return fixed + 1.2 * (pool[2]) + pool[1] + pool[0];
     }
     if (f === 'hku_6729') {
         const base = 1.2 * (scores.eng + scores.math + scores.m2);
