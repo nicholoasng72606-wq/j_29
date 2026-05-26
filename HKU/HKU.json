@@ -9,6 +9,15 @@
     "lq": 28
   },
   {
+  "jupas_code": "6107",
+  "programme_name": "Bachelor of Dental Surgery",
+  "school": "HKU",
+  "formula": "hku_dental",
+  "uq": 50,
+  "median": 48,
+  "lq": 47
+  },
+  {
     "jupas_code": "6200",
     "programme_name": "Computing and Data Science (Delta+)",
     "school": "HKU",
