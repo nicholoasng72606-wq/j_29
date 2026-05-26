@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JUPAS Calculator</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 1300px; margin: 20px auto; padding: 0 20px; background: #f5f5f5; }
@@ -23,6 +24,22 @@
         .info-note { margin-top: 15px; font-size: 12px; color: #666; text-align: center; }
         .error-msg { color: #dc3545; font-weight: bold; margin: 20px; text-align: center; }
         .loading { text-align: center; padding: 20px; color: #666; }
+
+        /* 手機版：螢幕闊度 <= 600px，input 打直排 */
+        @media (max-width: 600px) {
+            .subjects {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .subject {
+                width: 100%;
+            }
+            /* 可選：表格字體稍為縮小 */
+            th, td {
+                padding: 8px 4px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
