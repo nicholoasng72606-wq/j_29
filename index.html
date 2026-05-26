@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JUPAS Calculator (HKUST + PolyU)</title>
+    <title>JUPAS Calculator</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 1300px; margin: 20px auto; padding: 0 20px; background: #f5f5f5; }
         .input-panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
@@ -18,15 +18,15 @@
         .Yes { background-color: #86efac; }
         .Can-try { background-color: #ffe5b4; }
         .Gambling { background-color: #f8d7da; }
-        .N-A { background-color: #e2e3e5; }
-        .school-separator { background-color: #f0f0f0; font-weight: bold; text-align: left; font-size: 16px; color: #dc3545;}
+        .N-A { background-color: #000; color: #fff; }
+        .school-separator { background-color: #f0f0f0; font-weight: bold; text-align: left; font-size: 16px; color: #dc3545; }
         .info-note { margin-top: 15px; font-size: 12px; color: #666; text-align: center; }
         .error-msg { color: #dc3545; font-weight: bold; margin: 20px; text-align: center; }
         .loading { text-align: center; padding: 20px; color: #666; }
     </style>
 </head>
 <body>
-<h2>🎓 JUPAS Calculator (HKUST + PolyU)</h2>
+<h2>🎓 JUPAS Calculator</h2>
 
 <div class="input-panel">
     <div class="subjects">
@@ -92,8 +92,12 @@
         const map = {0:0, 1:1, 2:2, 3:3, 4:4, 5:5.5, 6:7, 7:8.5};
         return map[val];
     }
+    function inputToMedScore(val) {
+        const map = {0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7};
+        return map[val];
+    }
 
-    // ========== Chance 邏輯 (同 PolyU) ==========
+    // ========== Chance 邏輯 ==========
     function getChance(score, uq, median, lq) {
         if (median === null || median === undefined || median === "N/A") return "N/A";
         const uqVal = (uq !== null && uq !== "N/A") ? parseFloat(uq) : null;
@@ -106,241 +110,242 @@
         return "Gambling";
     }
 
-    // ========== PolyU 計分 (Best 5 weighted + 0.1×6th) ==========
-    function computePolyUScore(programme, subjectScores) {
-        const weights = programme.weights;
+    // ========== PolyU (Best 5 weighted + 0.1×6th) ==========
+    function computePolyUScore(prog, scores) {
+        const weights = prog.weights;
         if (!weights) return null;
-        let weightedScores = [];
-        for (const [subj, weight] of Object.entries(weights)) {
-            const score = subjectScores[subj];
-            if (score !== undefined) weightedScores.push(score * weight);
+        let arr = [];
+        for (const [s, w] of Object.entries(weights)) {
+            if (scores[s] !== undefined) arr.push(scores[s] * w);
         }
-        if (weightedScores.length <= 5) return weightedScores.reduce((a,b)=>a+b, 0);
-        weightedScores.sort((a,b)=>b-a);
-        const top5 = weightedScores.slice(0,5).reduce((a,b)=>a+b, 0);
-        const sixth = weightedScores[5] * 0.1;
-        return top5 + sixth;
+        arr.sort((a,b)=>b-a);
+        if (arr.length <= 5) return arr.reduce((a,b)=>a+b, 0);
+        return arr.slice(0,5).reduce((a,b)=>a+b, 0) + arr[5] * 0.1;
     }
 
-    // ========== HKUST 6th Subject Bonus ==========
-    function getBonusPercent(gradeScore) {
-        if (gradeScore >= 8.5) return 0.05;
-        if (gradeScore >= 7) return 0.0412;
-        if (gradeScore >= 5.5) return 0.0324;
-        if (gradeScore >= 4) return 0.0235;
-        if (gradeScore >= 3) return 0.0176;
-        return 0;
+    // ========== CUHK Best5 (weights + special_weight) ==========
+    function computeCUHKBest5(prog, scores) {
+        const weights = {...prog.weights};
+        if (prog.special_weight) {
+            const { subjects, weight } = prog.special_weight;
+            let best = null, bestVal = -1;
+            for (const s of subjects) {
+                if (scores[s] > bestVal) { bestVal = scores[s]; best = s; }
+            }
+            if (best) weights[best] = weight;
+        }
+        let arr = [];
+        for (const [s, w] of Object.entries(weights)) {
+            if (scores[s] !== undefined) arr.push(scores[s] * w);
+        }
+        arr.sort((a,b)=>b-a);
+        return arr.slice(0,5).reduce((a,b)=>a+b, 0);
     }
 
-    // 輔助：從剩餘科目中選最高原始分的一科作為第6科
-    function getSixthSubjectScore(usedSubjects, subjectScores) {
-        const allSubjects = ['chi','eng','math','m2','phy','chem','bio'];
-        let maxGrade = -1;
-        for (const s of allSubjects) {
-            if (!usedSubjects.includes(s)) {
-                const grade = subjectScores[s];
-                if (grade > maxGrade) maxGrade = grade;
-            }
+    // ========== CUHK Medicine ==========
+    function computeCUHKMedicine(scores) {
+        const med = {};
+        ['chi','eng','math','m2','phy','chem','bio'].forEach(s => {
+            med[s] = inputToMedScore(parseInt(document.getElementById(s).value));
+        });
+        const six = ['chi','eng','math','phy','chem','bio'];
+        let sum = six.reduce((a,s) => a + med[s], 0);
+        const min = Math.min(...six.map(s => med[s]));
+        if (med.m2 > min) {
+            sum = sum - min + (min + med.m2) / 2;
         }
-        return maxGrade;
+        return sum;
     }
 
-    // ========== HKUST 各公式計算 (返回 {best5Sum, usedSubjects}) ==========
-    function computeHKUST(programme, scores) {
-        const formula = programme.formula;
-        const eng = scores.eng * 2;
-        const math = scores.math * 2;
-        const base = eng + math;
-        const others = ['chi','m2','phy','chem','bio'];
-
-        // 通用暴力搜索工具：從候選列表中選 n 個科目，使用權重函數，返回所有組合的最高總分及科目
-        function bestPick(candidates, n, weightFn) {
-            let bestSum = -1;
-            let bestCombo = [];
-            const arr = [...candidates];
-            function combine(start, chosen) {
-                if (chosen.length === n) {
-                    let sum = 0;
-                    for (const s of chosen) sum += scores[s] * weightFn(s);
-                    if (sum > bestSum) {
-                        bestSum = sum;
-                        bestCombo = [...chosen];
-                    }
-                    return;
-                }
-                for (let i = start; i < arr.length; i++) {
-                    combine(i+1, [...chosen, arr[i]]);
-                }
-            }
-            combine(0, []);
-            return {sum: bestSum, subjects: bestCombo};
+    // ========== HKU ==========
+    function computeHKU(prog, scores) {
+        const f = prog.formula;
+        const all = ['chi','eng','math','m2','phy','chem','bio'];
+        if (f === 'hku_best5') {
+            const arr = all.map(s => scores[s]).sort((a,b)=>b-a);
+            return arr.slice(0,5).reduce((a,b)=>a+b,0);
         }
-
-        if (formula === 'hkust_eng_ai' || formula === 'hkust_dual') {
-            // Part B: 從 {phy,chem,bio} 選1科，權重 ×2
-            // Part C: 從剩餘4科中選2科，M2×1.5, 其他×1
-            const partBPool = ['phy','chem','bio'];
-            let bestTotal = -1, bestUsed = [];
-            for (const partB of partBPool) {
-                const partBScore = scores[partB] * 2;
-                const remaining = others.filter(s => s !== partB);
-                const partCResult = bestPick(remaining, 2, s => s === 'm2' ? 1.5 : 1);
-                const total = base + partBScore + partCResult.sum;
-                if (total > bestTotal) {
-                    bestTotal = total;
-                    bestUsed = ['eng','math', partB, ...partCResult.subjects];
-                }
-            }
-            return {best5Sum: bestTotal, usedSubjects: bestUsed};
+        if (f === 'hku_eng_math_best3') {
+            const base = scores.eng + scores.math;
+            const others = ['chi','m2','phy','chem','bio'].map(s => scores[s]).sort((a,b)=>b-a);
+            return base + others[0] + others[1] + others[2];
         }
-        else if (formula === 'hkust_bba') {
-            // Best 3 other subjects, weight 1
-            const result = bestPick(others, 3, () => 1);
-            return {
-                best5Sum: base + result.sum,
-                usedSubjects: ['eng','math', ...result.subjects]
-            };
+        if (f === 'hku_best6') {
+            const arr = all.map(s => scores[s]).sort((a,b)=>b-a);
+            return arr.slice(0,6).reduce((a,b)=>a+b,0);
         }
-        else if (formula === 'hkust_qfin') {
-            // Option A: Best 3 others ×1
-            const optA = bestPick(others, 3, () => 1);
-            const totalA = base + optA.sum;
-            // Option B: Best of {chem,phy,m2} ×1.5 + Best 2 of remaining ×1
-            const specialPool = ['chem','phy','m2'];
-            let bestB = -1, bestBUsed = [];
-            for (const sp of specialPool) {
-                const spScore = scores[sp] * 1.5;
-                const rem = others.filter(s => s !== sp);
-                const rest = bestPick(rem, 2, () => 1);
-                const total = base + spScore + rest.sum;
-                if (total > bestB) {
-                    bestB = total;
-                    bestBUsed = ['eng','math', sp, ...rest.subjects];
-                }
-            }
-            if (totalA >= bestB) {
-                return {best5Sum: totalA, usedSubjects: ['eng','math', ...optA.subjects]};
-            } else {
-                return {best5Sum: bestB, usedSubjects: bestBUsed};
-            }
+        if (f === 'hku_6224') {
+            const base = 2*scores.eng + 2*scores.math + 2*scores.m2;
+            const pool = [scores.phy, scores.chem, scores.bio].sort((a,b)=>b-a);
+            return base + (pool[0] + pool[1]) * 1.5;
         }
-        else if (formula === 'hkust_cse') {
-            // Part B: best 1 of {phy,chem,bio} weights: phy×2, chem×1, bio×1
-            // Part C: best 2 of remaining, M2×2, others×1
-            const partBPool = ['phy','chem','bio'];
-            const weightB = s => s === 'phy' ? 2 : 1;
-            let bestTotal = -1, bestUsed = [];
-            for (const partB of partBPool) {
-                const partBScore = scores[partB] * weightB(partB);
-                const remaining = others.filter(s => s !== partB);
-                const partCResult = bestPick(remaining, 2, s => s === 'm2' ? 2 : 1);
-                const total = base + partBScore + partCResult.sum;
-                if (total > bestTotal) {
-                    bestTotal = total;
-                    bestUsed = ['eng','math', partB, ...partCResult.subjects];
-                }
-            }
-            return {best5Sum: bestTotal, usedSubjects: bestUsed};
+        if (f === 'hku_6688') {
+            const fixed = scores.eng + scores.math;
+            const pool = [scores.phy, scores.chem, scores.bio, scores.m2].sort((a,b)=>b-a);
+            return fixed + 1.2 * (pool[0] + pool[1] + pool[2]);
+        }
+        if (f === 'hku_6729') {
+            const base = 1.2 * (scores.eng + scores.math + scores.m2);
+            const others = ['chi','phy','chem','bio'].map(s => scores[s]).sort((a,b)=>b-a);
+            return base + others[0] + others[1];
+        }
+        if (f === 'hku_6884') {
+            const base = 1.5*scores.eng + 1.25*(scores.math + scores.m2);
+            const others = ['chi','phy','chem','bio'].map(s => scores[s]).sort((a,b)=>b-a);
+            return base + others[0] + others[1] + others[2] + 0.2*others[3];
         }
         return null;
     }
 
-    // ========== 主渲染 ==========
-    let programmesData = { hkust: [], polyu: [] };
+    // ========== HKUST (保留) ==========
+    function getBonusPercent(gs) { if(gs>=8.5)return 0.05; if(gs>=7)return 0.0412; if(gs>=5.5)return 0.0324; if(gs>=4)return 0.0235; if(gs>=3)return 0.0176; return 0; }
+    function getSixthSubjectScore(used, scores) {
+        return Math.max(...['chi','eng','math','m2','phy','chem','bio'].filter(s => !used.includes(s)).map(s => scores[s]));
+    }
+    function bestPick(candidates, n, scores, wFn) {
+        let bestSum = -1, bestCombo = [];
+        const arr = [...candidates];
+        (function combine(start, chosen) {
+            if (chosen.length === n) {
+                let sum = chosen.reduce((a,s) => a + scores[s]*wFn(s), 0);
+                if (sum > bestSum) { bestSum = sum; bestCombo = [...chosen]; }
+                return;
+            }
+            for (let i=start; i<arr.length; i++) combine(i+1, [...chosen, arr[i]]);
+        })(0, []);
+        return {sum: bestSum, subjects: bestCombo};
+    }
+    function computeHKUST(prog, scores) {
+        const formula = prog.formula;
+        const base = scores.eng*2 + scores.math*2;
+        const others = ['chi','m2','phy','chem','bio'];
+        if (formula === 'hkust_eng_ai' || formula === 'hkust_dual') {
+            let best = -1, used = [];
+            for (const b of ['phy','chem','bio']) {
+                const rem = others.filter(s => s!==b);
+                const r = bestPick(rem, 2, scores, s => s==='m2'?1.5:1);
+                const total = base + scores[b]*2 + r.sum;
+                if (total > best) { best = total; used = ['eng','math',b,...r.subjects]; }
+            }
+            return {best5Sum: best, usedSubjects: used};
+        }
+        if (formula === 'hkust_bba') {
+            const r = bestPick(others, 3, scores, () => 1);
+            return {best5Sum: base + r.sum, usedSubjects: ['eng','math',...r.subjects]};
+        }
+        if (formula === 'hkust_qfin') {
+            const optA = bestPick(others, 3, scores, () => 1);
+            let bestB = -1, usedB = [];
+            for (const sp of ['chem','phy','m2']) {
+                const rem = others.filter(s => s!==sp);
+                const r = bestPick(rem, 2, scores, () => 1);
+                const total = base + scores[sp]*1.5 + r.sum;
+                if (total > bestB) { bestB = total; usedB = ['eng','math',sp,...r.subjects]; }
+            }
+            return (base+optA.sum >= bestB) ? {best5Sum: base+optA.sum, usedSubjects: ['eng','math',...optA.subjects]} : {best5Sum: bestB, usedSubjects: usedB};
+        }
+        if (formula === 'hkust_cse') {
+            const wB = s => s==='phy'?2:1;
+            let best = -1, used = [];
+            for (const b of ['phy','chem','bio']) {
+                const rem = others.filter(s => s!==b);
+                const r = bestPick(rem, 2, scores, s => s==='m2'?2:1);
+                const total = base + scores[b]*wB(b) + r.sum;
+                if (total > best) { best = total; used = ['eng','math',b,...r.subjects]; }
+            }
+            return {best5Sum: best, usedSubjects: used};
+        }
+        return null;
+    }
+
+    // ========== 主程式 ==========
+    let programmesData = { cuhk: [], hku: [], hkust: [], polyu: [] };
 
     function renderTable() {
-        const chi = inputToScore(parseInt(document.getElementById("chi").value));
-        const eng = inputToScore(parseInt(document.getElementById("eng").value));
-        const math = inputToScore(parseInt(document.getElementById("math").value));
-        const m2 = inputToScore(parseInt(document.getElementById("m2").value));
-        const phy = inputToScore(parseInt(document.getElementById("phy").value));
-        const chem = inputToScore(parseInt(document.getElementById("chem").value));
-        const bio = inputToScore(parseInt(document.getElementById("bio").value));
-        const subjectScores = { chi, eng, math, m2, phy, chem, bio };
-
+        const scores = {
+            chi: inputToScore(parseInt(document.getElementById("chi").value)),
+            eng: inputToScore(parseInt(document.getElementById("eng").value)),
+            math: inputToScore(parseInt(document.getElementById("math").value)),
+            m2: inputToScore(parseInt(document.getElementById("m2").value)),
+            phy: inputToScore(parseInt(document.getElementById("phy").value)),
+            chem: inputToScore(parseInt(document.getElementById("chem").value)),
+            bio: inputToScore(parseInt(document.getElementById("bio").value))
+        };
         const tbody = document.getElementById("resultBody");
         tbody.innerHTML = "";
-
-        if (!programmesData.hkust.length && !programmesData.polyu.length) {
+        if (!programmesData.cuhk.length && !programmesData.hku.length && !programmesData.hkust.length && !programmesData.polyu.length) {
             tbody.innerHTML = '<tr><td colspan="7" class="error-msg">No data loaded.</td></tr>';
             return;
         }
-
-        // 輔助：渲染一組 programmes
         function renderGroup(programmes, schoolName) {
             if (!programmes.length) return;
-            // 學校名分隔行
-            const sepRow = document.createElement('tr');
-            sepRow.innerHTML = `<td colspan="7" class="school-separator">${schoolName}</td>`;
-            tbody.appendChild(sepRow);
-
+            const sep = document.createElement('tr');
+            sep.innerHTML = `<td colspan="7" class="school-separator">${schoolName}</td>`;
+            tbody.appendChild(sep);
             for (const prog of programmes) {
                 let finalScore = null;
-                if (prog.formula) {
-                    // HKUST
-                    const result = computeHKUST(prog, subjectScores);
-                    if (!result) continue;
-                    const sixthGrade = getSixthSubjectScore(result.usedSubjects, subjectScores);
-                    const bonusPercent = getBonusPercent(sixthGrade);
-                    const bonus = prog.max_score * bonusPercent;
-                    finalScore = result.best5Sum + bonus;
+                if (prog.formula === 'cuhk_medicine') {
+                    finalScore = computeCUHKMedicine(scores);
+                } else if (prog.formula && prog.formula.startsWith('hkust_')) {
+                    const r = computeHKUST(prog, scores);
+                    if (!r) continue;
+                    const sixth = getSixthSubjectScore(r.usedSubjects, scores);
+                    finalScore = r.best5Sum + prog.max_score * getBonusPercent(sixth);
+                } else if (prog.formula && prog.formula.startsWith('hku_')) {
+                    finalScore = computeHKU(prog, scores);
+                } else if (prog.weights && prog.special_weight) {
+                    finalScore = computeCUHKBest5(prog, scores);
                 } else if (prog.weights) {
-                    // PolyU
-                    finalScore = computePolyUScore(prog, subjectScores);
+                    finalScore = computePolyUScore(prog, scores);
                 }
                 if (finalScore === null) continue;
-
                 const chance = getChance(finalScore, prog.uq, prog.median, prog.lq);
-                let chanceClass = "N-A";
-                if (chance === "Ezzzzzzz") chanceClass = "Ezzzzzzz";
-                else if (chance === "Easy") chanceClass = "Easy";
-                else if (chance === "Yes") chanceClass = "Yes";
-                else if (chance === "Can try") chanceClass = "Can-try";
-                else if (chance === "Gambling") chanceClass = "Gambling";
-
+                let cls = "N-A";
+                if (chance === "Ezzzzzzz") cls = "Ezzzzzzz";
+                else if (chance === "Easy") cls = "Easy";
+                else if (chance === "Yes") cls = "Yes";
+                else if (chance === "Can try") cls = "Can-try";
+                else if (chance === "Gambling") cls = "Gambling";
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-                    <td class="data-cell">${prog.jupas_code || ''}</td>
-                    <td class="data-cell">${prog.programme_name || ''}</td>
+                    <td class="data-cell">${prog.jupas_code||''}</td>
+                    <td class="data-cell">${prog.programme_name||''}</td>
                     <td class="data-cell">${finalScore.toFixed(2)}</td>
-                    <td class="data-cell">${(prog.uq !== undefined && prog.uq !== null) ? prog.uq : 'N/A'}</td>
-                    <td class="data-cell">${(prog.median !== undefined && prog.median !== null) ? prog.median : 'N/A'}</td>
-                    <td class="data-cell">${(prog.lq !== undefined && prog.lq !== null) ? prog.lq : 'N/A'}</td>
-                    <td class="${chanceClass}">${chance}</td>
+                    <td class="data-cell">${prog.uq != null ? prog.uq : 'N/A'}</td>
+                    <td class="data-cell">${prog.median != null ? prog.median : 'N/A'}</td>
+                    <td class="data-cell">${prog.lq != null ? prog.lq : 'N/A'}</td>
+                    <td class="${cls}">${chance}</td>
                 `;
                 tbody.appendChild(tr);
             }
         }
-
-        // 先 HKUST，後 PolyU
+        renderGroup(programmesData.hku, "HKU");
+        renderGroup(programmesData.cuhk, "CUHK");
         renderGroup(programmesData.hkust, "HKUST");
         renderGroup(programmesData.polyu, "PolyU");
-
-        if (tbody.children.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7">No valid programmes to display.</td></tr>';
-        }
+        if (!tbody.children.length) tbody.innerHTML = '<tr><td colspan="7">No valid programmes to display.</td></tr>';
     }
 
     function bindEvents() {
-        document.querySelectorAll('select').forEach(select => {
-            select.addEventListener('change', renderTable);
-        });
+        document.querySelectorAll('select').forEach(s => s.addEventListener('change', renderTable));
     }
 
-    // 載入兩個 JSON
     Promise.all([
-        fetch('./HKUST.json').then(r => { if(!r.ok) throw new Error('HKUST.json load error'); return r.json(); }),
-        fetch('./PolyU.json').then(r => { if(!r.ok) throw new Error('PolyU.json load error'); return r.json(); })
+        fetch('./CUHK.json').then(r => { if(!r.ok) throw new Error('CUHK'); return r.json(); }),
+        fetch('./HKU.json').then(r => { if(!r.ok) throw new Error('HKU'); return r.json(); }),
+        fetch('./HKUST.json').then(r => { if(!r.ok) throw new Error('HKUST'); return r.json(); }),
+        fetch('./PolyU.json').then(r => { if(!r.ok) throw new Error('PolyU'); return r.json(); })
     ])
-    .then(([hkustData, polyuData]) => {
-        programmesData.hkust = Array.isArray(hkustData) ? hkustData : [];
-        programmesData.polyu = Array.isArray(polyuData) ? polyuData : [];
+    .then(([cuhk, hku, hkust, polyu]) => {
+        programmesData.cuhk = Array.isArray(cuhk) ? cuhk : [];
+        programmesData.hku = Array.isArray(hku) ? hku : [];
+        programmesData.hkust = Array.isArray(hkust) ? hkust : [];
+        programmesData.polyu = Array.isArray(polyu) ? polyu : [];
         bindEvents();
         renderTable();
     })
     .catch(error => {
-        console.error(error);
-        document.getElementById("resultBody").innerHTML = `<tr><td colspan="7" class="error-msg">❌ Failed to load data. Ensure HKUST.json and PolyU.json exist.<br>${error.message}</td></tr>`;
+        document.getElementById("resultBody").innerHTML = `<tr><td colspan="7" class="error-msg">❌ Failed to load data. Ensure CUHK.json, HKU.json, HKUST.json and PolyU.json exist.<br>${error.message}</td></tr>`;
     });
 </script>
 </body>
