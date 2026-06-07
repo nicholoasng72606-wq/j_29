@@ -6,18 +6,21 @@ import { computeAllPolyU } from './PolyU/PolyU.js';
 
 let allData = {};
 
+let categoryMap = {};
+
 // 讀取 JSON 數據
 async function loadData() {
-    // 自動偵測 GitHub Pages 或 LocalHost 嘅路徑
     const basePath = window.location.pathname.includes('/j_29/') ? '/j_29' : '';
     
-    const [cuhk, hku, hkust, polyu] = await Promise.all([
+    const [cuhk, hku, hkust, polyu, catMap] = await Promise.all([
         fetch(basePath + '/CUHK/CUHK.json').then(r => r.json()),
         fetch(basePath + '/HKU/HKU.json').then(r => r.json()),
         fetch(basePath + '/HKUST/HKUST.json').then(r => r.json()),
-        fetch(basePath + '/PolyU/PolyU.json').then(r => r.json())
+        fetch(basePath + '/PolyU/PolyU.json').then(r => r.json()),
+        fetch(basePath + '/cat.json').then(r => r.json())
     ]);
     allData = { cuhk, hku, hkust, polyu };
+    categoryMap = catMap;
 }
 
 // 獲取當前輸入成績
@@ -44,6 +47,7 @@ function renderTable() {
     }
 
     const { scores, medScores } = getScores();
+    const selectedCategory = document.getElementById("categoryFilter").value;
 
     const schools = [
         { name: "HKU", data: allData.hku, fn: computeAllHKU, extra: scores },
@@ -52,12 +56,11 @@ function renderTable() {
         { name: "PolyU", data: allData.polyu, fn: computeAllPolyU, extra: scores }
     ];
 
+    // 收集所有學校的計算結果
+    let allSchoolResults = [];
+
     for (const school of schools) {
         if (!school.data || !school.data.length) continue;
-
-        const sep = document.createElement('tr');
-        sep.innerHTML = `<td colspan="7" class="school-separator">${school.name}</td>`;
-        tbody.appendChild(sep);
 
         let results;
         if (school.name === "CUHK") {
@@ -66,7 +69,32 @@ function renderTable() {
             results = school.fn(school.data, school.extra);
         }
 
-        results.forEach(r => {
+        // 為每個 programme 補上 category
+        results = results.map(r => ({
+            ...r,
+            category: categoryMap[r.jupas_code] || "OTHER"
+        }));
+
+        allSchoolResults.push({ school: school.name, results });
+    }
+
+    // 根據 category 過濾（ALL 則保留全部）
+    if (selectedCategory !== "ALL") {
+        allSchoolResults = allSchoolResults.map(group => ({
+            school: group.school,
+            results: group.results.filter(r => r.category === selectedCategory)
+        })).filter(group => group.results.length > 0);
+    }
+
+    // 渲染過濾後的結果
+    for (const group of allSchoolResults) {
+        // 學校分隔行
+        const sep = document.createElement('tr');
+        sep.innerHTML = `<td colspan="7" class="school-separator">${group.school}</td>`;
+        tbody.appendChild(sep);
+
+        // 每個 programme 行
+        group.results.forEach(r => {
             const cls = r.chance === "Ezzzzzzz" ? "Ezzzzzzz" :
                         r.chance === "Easy" ? "Easy" :
                         r.chance === "Yes" ? "Yes" :
@@ -87,8 +115,9 @@ function renderTable() {
         });
     }
 
+    // 若過濾後完全沒東西
     if (!tbody.children.length) {
-        tbody.innerHTML = '<tr><td colspan="7">No valid programmes to display.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7">No programmes in this category.</td></tr>';
     }
 }
 
