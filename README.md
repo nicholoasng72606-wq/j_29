@@ -25,5 +25,6 @@ The data is from JUPAS admission figures of each university
 - <a href="https://admission.cuhk.edu.hk/wp-content/uploads/2025/05/Admission-Grades-2025.pdf" target="_blank">CUHK</a>
 - <a href="https://publication.join.ust.hk/view/13965330/" target="_blank">HKUST</a>
 - <a href="https://www.polyu.edu.hk/aradm/jupas/admission_figures.pdf" target="_blank">PolyU</a>
+
 ### Year of Data
 The admission scores (UQ, Median, LQ) reflect the latest published data as of 2025.
