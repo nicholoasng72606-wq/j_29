@@ -29,48 +29,25 @@ a{font-size: 25px; }
     .subjects { flex-direction: column; gap: 10px; }
     .subject { width: 100%; }
     th, td { padding: 8px 4px; font-size: 13px; }
+    .filter-bar {flex-direction: column;align-items: flex-start;gap: 10px;}
+    .filter-bar select,
+    .filter-bar input[type="text"],
+    .filter-bar button,
+    .filter-bar label {width: 100%;}
+    #searchInput {width: 100%;}
+    table {width: auto;display: block;overflow-x: auto;white-space: nowrap;}
 }
 
 @media print {
-    body {
-        background: white;
-        margin: 0;
-        font-size: 12px;
-    }
-
+    body { background: white; margin: 0; font-size: 12px; }
     .filter-bar,
     #ads,
     a.backpage,
-    #printBtn {
-        display: none !important;
-    }
-
-    .input-panel {
-        padding: 8px;
-        margin-bottom: 8px;
-        box-shadow: none;
-        border: 1px solid #ccc;
-    }
-
-    .subjects {
-        gap: 6px;
-    }
-
-    .subject select {
-        padding: 2px 4px;
-        font-size: 11px;
-    }
-
-    table {
-        font-size: 11px;
-    }
-
-    th, td {
-        padding: 4px 3px;
-    }
-
-    * {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
+    #printBtn { display: none !important; }
+    .input-panel { padding: 8px; margin-bottom: 8px; box-shadow: none; border: 1px solid #ccc; }
+    .subjects { gap: 6px; }
+    .subject select { padding: 2px 4px; font-size: 11px; }
+    table { font-size: 11px; }
+    th, td { padding: 4px 3px; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
