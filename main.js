@@ -10,14 +10,12 @@ let categoryMap = {};
 
 // 讀取 JSON 數據
 async function loadData() {
-    const basePath = window.location.pathname.includes('/j_29/') ? '/j_29' : '';
-    
     const [cuhk, hku, hkust, polyu, catMap] = await Promise.all([
-        fetch(basePath + '/CUHK/CUHK.json').then(r => r.json()),
-        fetch(basePath + '/HKU/HKU.json').then(r => r.json()),
-        fetch(basePath + '/HKUST/HKUST.json').then(r => r.json()),
-        fetch(basePath + '/PolyU/PolyU.json').then(r => r.json()),
-        fetch(basePath + '/cat.json').then(r => r.json())
+        fetch('./CUHK/CUHK.json').then(r => r.json()),
+        fetch('./HKU/HKU.json').then(r => r.json()),
+        fetch('./HKUST/HKUST.json').then(r => r.json()),
+        fetch('./PolyU/PolyU.json').then(r => r.json()),
+        fetch('./cat.json').then(r => r.json())
     ]);
     allData = { cuhk, hku, hkust, polyu };
     categoryMap = catMap;
