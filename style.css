@@ -4,7 +4,7 @@ body { font-family: Arial, sans-serif; max-width: 1300px; margin: 20px auto; pad
 .subject { display: flex; flex-direction: column; min-width: 80px; }
 select { padding: 8px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; cursor: pointer; }
 table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow-x: auto; display: block; }
-th, td { border: 1px solid #ddd; padding: 10px 8px; text-align: left; vertical-align: top; }
+th, td { border: 1px solid #ddd; padding: 10px 8px; text-align: left; vertical-align: middle; }
 th { background-color: #d8d6d6; }
 .data-cell { background-color: #e7e7e7; }
 .Ezzzzzzz { background-color: #d8b4fe; }
@@ -23,9 +23,54 @@ a{font-size: 25px; }
 .filter-bar {  margin: 15px 0;  display: flex;  align-items: center;  gap: 20px;}
 .filter-bar select {  padding: 8px 12px;  font-size: 16px;  border-radius: 6px;  border: 1px solid #aaa;}
 .backpage {font-size: 20px;}
+.printBtn{padding:8px 16px; margin-left:10px; border-radius: 10px; font-size: 15px;border: 1px solid #535353;}
 
 @media (max-width: 600px) {
     .subjects { flex-direction: column; gap: 10px; }
     .subject { width: 100%; }
     th, td { padding: 8px 4px; font-size: 13px; }
+}
+
+@media print {
+    body {
+        background: white;
+        margin: 0;
+        font-size: 12px;
+    }
+
+    .filter-bar,
+    #ads,
+    a.backpage,
+    #printBtn {
+        display: none !important;
+    }
+
+    .input-panel {
+        padding: 8px;
+        margin-bottom: 8px;
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+
+    .subjects {
+        gap: 6px;
+    }
+
+    .subject select {
+        padding: 2px 4px;
+        font-size: 11px;
+    }
+
+    table {
+        font-size: 11px;
+    }
+
+    th, td {
+        padding: 4px 3px;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
 }
