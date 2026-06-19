@@ -28,14 +28,14 @@ a{font-size: 25px; }
 @media (max-width: 600px) {
     .subjects { flex-direction: column; gap: 10px; }
     .subject { width: 100%; }
-    th, td { padding: 8px 4px; font-size: 13px; }
-    .filter-bar {flex-direction: column;align-items: flex-start;gap: 10px;}
+    .filter-bar { flex-direction: column; align-items: flex-start; gap: 10px; }
     .filter-bar select,
     .filter-bar input[type="text"],
     .filter-bar button,
-    .filter-bar label {width: 100%;}
-    #searchInput {width: 100%;}
-    table {width: auto;display: block;overflow-x: auto;white-space: nowrap;}
+    .filter-bar label { width: 100%; }
+    #searchInput { width: 100%; }
+    table { width: 100%; display: table; table-layout: auto; overflow-x: visible; white-space: normal; font-size: 11px; }
+    th, td { padding: 4px 2px; word-break: break-word; }
 }
 
 @media print {
