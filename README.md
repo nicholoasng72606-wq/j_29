@@ -12,12 +12,19 @@ The website will help you to calculate your scores to assist you to make decisio
 - 🖊️Able to input your own scores 
 - 🏷️Show different colour-coded admission chances
 - 📋Filter different programmes by category
+- 🔍 Search by JUPAS code or programme name
+- 📊 Visual bar showing your score relative to LQ, Median, and UQ
+- ⭐ Star favourite programmes and filter to show only them
+- 💾 Scores and favourites are saved automatically in your browser
+- 🖨️ Print or save as PDF with a clean layout
 
 ## How to use
 1. Open the website
 2. Input your scores of each subject using the dropdown menus
 3. Your calculated scores and admission chances will appear in the table automatically
 4. Use the **Category** dropdown to filter programmes by discipline
+5. Click the **⭐** next to a programme to save it as a favourite
+6. Use the **📥 Save as PDF** button to download a printable copy
 
 ## Data Sources
 The data is from JUPAS admission figures of each university
