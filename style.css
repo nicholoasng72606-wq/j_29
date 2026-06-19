@@ -32,7 +32,11 @@ a{font-size: 25px; }
     .filter-bar select, .filter-bar input[type="text"], .filter-bar button, .filter-bar label { width: 100%; }
     table { width: 100%; display: table; table-layout: auto; overflow-x: visible; white-space: normal; font-size: 11px; }
     th, td { padding: 4px 2px; word-break: break-word; }
-    th:nth-child(3), td:nth-child(3) { max-width: 50px; font-size: 10px; word-break: break-word; }
+    th:nth-child(2), td:nth-child(2) { max-width: 45px; word-break: break-word; }
+    th:nth-child(3), td:nth-child(3) { max-width: 75px; word-break: break-word; }
+    th:nth-child(4), td:nth-child(4) { max-width: 45px; word-break: break-word; }
+    th:nth-child(6), td:nth-child(6) { max-width: 45px; word-break: break-word; }
+    th:nth-child(7), td:nth-child(7) { max-width: 60px; word-break: break-word; }
 }
 
 @media print {
