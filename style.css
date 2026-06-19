@@ -36,6 +36,8 @@ a{font-size: 25px; }
     #searchInput { width: 100%; }
     table { width: 100%; display: table; table-layout: auto; overflow-x: visible; white-space: normal; font-size: 11px; }
     th, td { padding: 4px 2px; word-break: break-word; }
+    th:nth-child(3),
+    td:nth-child(3) {max-width: 100px;font-size: 10px;word-break: break-word;}
 }
 
 @media print {
